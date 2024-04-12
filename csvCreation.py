@@ -1,6 +1,8 @@
-import csv, os
+import csv
+import os
 from dbOperations import *
 
+#Funcion para crear csvs
 def csvCreation():
     cursor.execute("SELECT provincia, localidad FROM localidades ORDER BY provincia")
     results = cursor.fetchall()
@@ -9,14 +11,20 @@ def csvCreation():
     if not os.path.exists(folder):
         os.makedirs(folder)
     
-    for provincia in results:
-        with open(f'localidades_por_provincia/{provincia[0]}.csv', 'w', newline='', encoding='utf-8') as csvfile:
+    # Preparar los datos para escribir en los archivos CSV
+    data = {}
+    for provincia, localidad in results:
+        if provincia not in data:
+            data[provincia] = []
+        data[provincia].append(localidad)
+
+  
+    for provincia, localidades in data.items():
+        with open(f'{folder}/{provincia}.csv', 'w', newline='', encoding='utf-8') as csvfile:
             csv_writer = csv.writer(csvfile)
             csv_writer.writerow(['localidad'])
-            cursor.execute(f"SELECT localidad FROM localidades WHERE provincia = '{provincia[0]}'")
-            localidades = cursor.fetchall()
-            for localidad in localidades:
-                csv_writer.writerow([localidad[0]])
+            csv_writer.writerows([[localidad] for localidad in localidades]) 
         
-        print('Archivos creados exitosamente')
+        print(f'Archivo para {provincia} creado exitosamente')
+
 csvCreation()
